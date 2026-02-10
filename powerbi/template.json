@@ -1,0 +1,96 @@
+{
+  "version": "1.0",
+  "name": "Parametric Insurance Monitor",
+  "description": "Real-time monitoring dashboard for parametric insurance claims processing",
+  "dataModel": {
+    "dataSources": [
+      {
+        "name": "FabricWarehouse",
+        "connectionString": "Data Source=<workspace>.datawarehouse.fabric.microsoft.com;Initial Catalog=parametric_insurance_warehouse;Authentication=ActiveDirectoryInteractive",
+        "type": "SqlServer"
+      }
+    ],
+    "tables": [
+      {
+        "name": "Claims",
+        "source": "SELECT * FROM claims"
+      },
+      {
+        "name": "Policies",
+        "source": "SELECT * FROM policies"
+      },
+      {
+        "name": "OutageEvents",
+        "source": "SELECT * FROM outage_events"
+      },
+      {
+        "name": "Payouts",
+        "source": "SELECT * FROM payouts"
+      },
+      {
+        "name": "WeatherData",
+        "source": "SELECT * FROM weather_data"
+      },
+      {
+        "name": "ClaimStatistics",
+        "source": "SELECT * FROM v_claim_statistics"
+      },
+      {
+        "name": "PolicyPerformance",
+        "source": "SELECT * FROM v_policy_performance"
+      },
+      {
+        "name": "OutageImpact",
+        "source": "SELECT * FROM v_outage_impact"
+      }
+    ],
+    "measures": [
+      {
+        "name": "Total Claims",
+        "expression": "COUNT(Claims[claim_id])"
+      },
+      {
+        "name": "Total Payout Amount",
+        "expression": "SUM(Payouts[amount])"
+      },
+      {
+        "name": "Average Processing Time",
+        "expression": "AVERAGE(DATEDIFF(Claims[filed_at], Claims[validated_at], MINUTE))"
+      },
+      {
+        "name": "Approval Rate",
+        "expression": "DIVIDE(COUNTROWS(FILTER(Claims, Claims[status] = \"approved\")), COUNTROWS(Claims), 0)"
+      },
+      {
+        "name": "Active Outages",
+        "expression": "COUNTROWS(FILTER(OutageEvents, OutageEvents[status] = \"active\"))"
+      },
+      {
+        "name": "Average Confidence Score",
+        "expression": "AVERAGE(Claims[ai_confidence_score])"
+      }
+    ]
+  },
+  "pages": [
+    {
+      "name": "Overview",
+      "displayName": "📊 Overview Dashboard"
+    },
+    {
+      "name": "Claims",
+      "displayName": "📋 Claims Processing"
+    },
+    {
+      "name": "Outages",
+      "displayName": "⚡ Outage Monitoring"
+    },
+    {
+      "name": "Policies",
+      "displayName": "📑 Policy Performance"
+    },
+    {
+      "name": "AI Insights",
+      "displayName": "🤖 AI Validation Insights"
+    }
+  ]
+}

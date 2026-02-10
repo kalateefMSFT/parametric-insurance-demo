@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12']
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r setup/requirements.txt
+        pip install pytest pytest-cov black flake8 mypy
+    
+    - name: Lint with flake8
+      run: |
+        flake8 shared/ functions/ demo/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 shared/ functions/ demo/ --count --exit-zero --max-complexity=10 --max-line-length=100 --statistics
+    
+    - name: Check formatting with black
+      run: |
+        black --check shared/ functions/ demo/
+    
+    - name: Type check with mypy
+      run: |
+        mypy shared/ --ignore-missing-imports
+      continue-on-error: true
+    
+    - name: Run tests
+      run: |
+        pytest tests/ --cov=shared --cov-report=xml --cov-report=term
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  validate-presto:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        pip install -r setup/requirements.txt
+    
+    - name: Test PRESTO simulation
+      run: |
+        python shared/presto.py
+    
+    - name: Validate scenarios
+      run: |
+        python -c "
+        from shared.presto import PRESTO
+        presto = PRESTO()
+        scenarios = ['normal_day', 'severe_weather', 'heat_wave', 'winter_storm']
+        for scenario in scenarios:
+            events = presto.generate_outage_scenario(scenario)
+            assert len(events) > 0, f'{scenario} failed'
+            print(f'✓ {scenario}: {len(events)} events')
+        "

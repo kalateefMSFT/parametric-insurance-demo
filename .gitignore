@@ -1,0 +1,101 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment Variables
+.env
+.env.local
+*.env
+
+# Azure
+.azure/
+local.settings.json
+.python_packages/
+
+# Logs
+*.log
+logs/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# Microsoft Office temporary files
+~$*.pptx
+~$*.docx
+~$*.xlsx
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# Fabric/Databricks
+.databricks/
+databricks.cfg
+
+# Credentials
+*credentials*.json
+*secret*.json
+*key*.json
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# OS Files
+Thumbs.db
+.DS_Store
+
+# Node modules (if using npm for any tools)
+node_modules/
+
+# Build artifacts
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Keep example files
+!.env.example
+!config.example.json

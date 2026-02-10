@@ -1,0 +1,46 @@
+# Parametric Insurance Demo - Python Dependencies
+
+# Azure SDKs
+azure-functions==1.17.0
+azure-eventgrid==4.17.0
+azure-identity==1.15.0
+azure-storage-blob==12.19.0
+
+# Microsoft Fabric (using PyODBC for SQL connections)
+pyodbc==5.0.1
+
+# OpenAI for Foundry AI Agent
+openai==1.12.0
+
+# Data processing
+pandas==2.2.0
+numpy==1.26.3
+
+# HTTP requests
+requests==2.31.0
+
+# Configuration
+python-dotenv==1.0.1
+
+# Date/time utilities
+python-dateutil==2.8.2
+
+# JSON handling
+jsonschema==4.21.1
+
+# Logging
+colorlog==6.8.2
+
+# Testing
+pytest==8.0.0
+pytest-asyncio==0.23.5
+pytest-mock==3.12.0
+
+# Code quality
+black==24.1.1
+flake8==7.0.0
+mypy==1.8.0
+
+# Development
+ipython==8.21.0
+jupyter==1.0.0

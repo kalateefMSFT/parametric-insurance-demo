@@ -1,0 +1,89 @@
+{
+  "name": "Outage Ingestion Pipeline",
+  "properties": {
+    "description": "Ingests power outage data every 5 minutes from PowerOutage.us and NOAA Weather API",
+    "activities": [
+      {
+        "name": "Run Data Ingestion Notebook",
+        "type": "SynapseNotebook",
+        "dependsOn": [],
+        "policy": {
+          "timeout": "0.00:10:00",
+          "retry": 2,
+          "retryIntervalInSeconds": 30
+        },
+        "typeProperties": {
+          "notebook": {
+            "referenceName": "01_data_ingestion",
+            "type": "NotebookReference"
+          },
+          "parameters": {},
+          "snapshot": true
+        }
+      },
+      {
+        "name": "Check Data Quality",
+        "type": "IfCondition",
+        "dependsOn": [
+          {
+            "activity": "Run Data Ingestion Notebook",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "typeProperties": {
+          "expression": {
+            "value": "@greater(activity('Run Data Ingestion Notebook').output.result.events_ingested, 0)",
+            "type": "Expression"
+          },
+          "ifTrueActivities": [
+            {
+              "name": "Trigger Event Grid Notification",
+              "type": "WebActivity",
+              "dependsOn": [],
+              "policy": {
+                "timeout": "0.00:01:00",
+                "retry": 1
+              },
+              "typeProperties": {
+                "url": "https://your-eventgrid-topic.eastus-1.eventgrid.azure.net/api/events",
+                "method": "POST",
+                "headers": {
+                  "aeg-sas-key": "@pipeline().parameters.EventGridKey"
+                },
+                "body": {
+                  "value": "[{\"eventType\":\"fabric.ingestion.completed\",\"subject\":\"outage_ingestion\",\"dataVersion\":\"1.0\",\"data\":{\"events_count\":\"@{activity('Run Data Ingestion Notebook').output.result.events_ingested}\",\"timestamp\":\"@{utcNow()}\",\"table\":\"outage_events\"}}]",
+                  "type": "Expression"
+                }
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "parameters": {
+      "EventGridKey": {
+        "type": "String",
+        "defaultValue": ""
+      }
+    },
+    "folder": {
+      "name": "Parametric Insurance"
+    }
+  },
+  "trigger": {
+    "name": "Every5MinutesTrigger",
+    "properties": {
+      "type": "ScheduleTrigger",
+      "typeProperties": {
+        "recurrence": {
+          "frequency": "Minute",
+          "interval": 5,
+          "startTime": "2026-02-01T00:00:00Z",
+          "timeZone": "UTC"
+        }
+      }
+    }
+  }
+}
