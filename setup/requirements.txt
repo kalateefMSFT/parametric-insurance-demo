@@ -3,7 +3,7 @@
 # Azure SDKs
 azure-functions==1.17.0
 azure-eventgrid==4.17.0
-azure-identity==1.15.0
+azure-identity==1.16.1
 azure-storage-blob==12.19.0
 
 # Microsoft Fabric (using PyODBC for SQL connections)
