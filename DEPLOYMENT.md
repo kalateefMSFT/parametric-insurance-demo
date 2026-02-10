@@ -110,7 +110,7 @@ You should see 5 resources created.
 
 1. Go to [Microsoft Fabric](https://app.fabric.microsoft.com/)
 2. Click **Workspaces** → **New Workspace**
-3. Name: `Parametric Insurance`
+3. Name: `ParametricInsurance`
 4. License: Select appropriate tier (F2+ recommended)
 
 ### Step 2: Create Lakehouse
