@@ -48,7 +48,9 @@ NOAA_API_URL = "https://api.weather.gov"
 USER_AGENT = "ParametricInsuranceDemo/1.0 (your-email@example.com)"
 
 # Lakehouse tables
+WORKSPACE_NAME = "ParametricInsurance"
 LAKEHOUSE_NAME = "parametric_insurance_lakehouse"
+LAKEHOUSE_SCHEMA = "dbo"
 TABLE_OUTAGE_EVENTS = "outage_events"
 TABLE_WEATHER_DATA = "weather_data"
 TABLE_OUTAGE_RAW = "outage_raw"
@@ -229,6 +231,7 @@ def fetch_noaa_weather(lat: float, lon: float) -> Optional[Dict[str, Any]]:
 # Import PRESTO simulation tool
 import sys
 sys.path.append('/lakehouse/default/Files/shared')
+import presto
 from presto import PRESTO, generate_scenario
 
 print(f"Starting power outage data simulation at {datetime.utcnow()}")
@@ -258,7 +261,7 @@ try:
     if FABRIC_ENV:
         # Using Fabric API
         spark_df = spark.createDataFrame(outage_df)
-        spark_df.write.format("delta").mode("append").saveAsTable(f"{LAKEHOUSE_NAME}.{TABLE_OUTAGE_RAW}")
+        spark_df.write.format("delta").mode("append").saveAsTable(f"{WORKSPACE_NAME}.{LAKEHOUSE_NAME}.{LAKEHOUSE_SCHEMA}.{TABLE_OUTAGE_RAW}")
     else:
         # Local testing
         outage_df.to_csv(f"{TABLE_OUTAGE_RAW}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv", index=False)
@@ -307,7 +310,7 @@ if not outage_df.empty:
         # Save to lakehouse
         if FABRIC_ENV:
             spark_weather = spark.createDataFrame(weather_df)
-            spark_weather.write.format("delta").mode("append").saveAsTable(f"{LAKEHOUSE_NAME}.{TABLE_WEATHER_DATA}")
+            spark_weather.write.format("delta").mode("append").saveAsTable(f"{WORKSPACE_NAME}.{LAKEHOUSE_NAME}.{LAKEHOUSE_SCHEMA}.{TABLE_WEATHER_DATA}")
         else:
             weather_df.to_csv(f"{TABLE_WEATHER_DATA}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv", index=False)
         
@@ -345,7 +348,7 @@ if not outage_df.empty:
     # Save to lakehouse
     if FABRIC_ENV:
         spark_final = spark.createDataFrame(outage_final)
-        spark_final.write.format("delta").mode("append").saveAsTable(f"{LAKEHOUSE_NAME}.{TABLE_OUTAGE_EVENTS}")
+        spark_final.write.format("delta").mode("append").saveAsTable(f"{WORKSPACE_NAME}.{LAKEHOUSE_NAME}.{LAKEHOUSE_SCHEMA}.{TABLE_OUTAGE_EVENTS}")
     else:
         outage_final.to_csv(f"{TABLE_OUTAGE_EVENTS}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv", index=False)
     
