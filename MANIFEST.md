@@ -11,9 +11,9 @@
 
 ## Repository Statistics
 
-- **Total Files:** 61
+- **Total Files:** 58
 - **Lines of Code:** ~7,500
-- **Documentation Pages:** 15
+- **Documentation Pages:** 12
 - **Test Files:** 4
 - **Azure Functions:** 4
 - **Demo Scenarios:** 3
@@ -23,7 +23,7 @@
 
 ## File Breakdown
 
-### Documentation (15 files)
+### Documentation (12 files)
 - README.md - Main repository documentation
 - QUICKSTART.md - 30-minute setup guide
 - DEPLOYMENT.md - Complete deployment guide
@@ -33,9 +33,6 @@
 - LICENSE - MIT License
 - POWERSHELL_GUIDE.md - Windows deployment
 - GETTING_STARTED.md - Combined quick start
-- INDEX.md - Navigation guide
-- FILE_STRUCTURE.md - File listing
-- DIRECTORY_TREE.txt - Visual tree
 - README_FIRST.md - Initial orientation
 - docs/PRESTO_GUIDE.md - Simulation tool
 - docs/PRESTO_SUMMARY.md - PRESTO overview
