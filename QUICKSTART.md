@@ -66,8 +66,8 @@ pip install -r setup/requirements.txt
 **Expected Output:**
 ```
 ✓ All files present - Project structure is complete!
-Total expected files: 37
-Files found: 37
+Total expected files: 60
+Files found: 60
 ```
 
 ## Step 2: Azure Login (2 minutes)
@@ -122,7 +122,7 @@ Event Grid Endpoint:   https://...
 
 1. Go to [Microsoft Fabric](https://app.fabric.microsoft.com/)
 2. Click **Workspaces** → **New Workspace**
-3. Name: `Parametric Insurance`
+3. Name: `ParametricInsurance`
 4. Select license tier (F2+ recommended, or use trial)
 
 ### 4.2 Create Lakehouse
