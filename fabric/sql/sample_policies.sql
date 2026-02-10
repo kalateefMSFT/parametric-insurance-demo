@@ -2,6 +2,11 @@
 -- Sample Policies for Parametric Insurance Demo
 -- Power Outage Business Interruption
 -- ============================================================================
+-- Fabric DW compatibility:
+--   - Each INSERT uses a single-row VALUES clause
+--   - No PRINT statements
+--   - Explicit created_at/updated_at values (no DEFAULT constraints)
+-- ============================================================================
 
 -- Clear existing sample data
 DELETE FROM payouts WHERE policy_id LIKE 'BI-%';
@@ -15,61 +20,34 @@ DELETE FROM policies WHERE policy_id LIKE 'BI-%';
 INSERT INTO policies (
     policy_id, business_name, business_type, zip_code, address, city, state,
     latitude, longitude, threshold_minutes, hourly_rate, max_payout,
-    status, effective_date, contact_email, contact_phone
-) VALUES
-(
-    'BI-001',
-    'Pike Place Coffee Co',
-    'Coffee Shop',
-    '98101',
-    '123 Pike St',
-    'Seattle',
-    'WA',
-    47.6097,
-    -122.3425,
-    120,  -- 2 hour threshold
-    500,  -- $500/hour
-    10000,  -- $10,000 max
-    'active',
-    '2026-01-01',
-    'owner@pikeplacecoffee.com',
-    '206-555-0101'
-),
-(
-    'BI-002',
-    'Broadway Restaurant & Bar',
-    'Restaurant',
-    '98102',
-    '456 Broadway Ave E',
-    'Seattle',
-    'WA',
-    47.6234,
-    -122.3212,
-    60,   -- 1 hour threshold (restaurant loses more during peak hours)
-    750,  -- $750/hour
-    15000,  -- $15,000 max
-    'active',
-    '2026-01-01',
-    'manager@broadwayrestaurant.com',
-    '206-555-0102'
-),
-(
-    'BI-003',
-    'Capitol Hill Fitness Center',
-    'Gym',
-    '98102',
-    '789 E Pine St',
-    'Seattle',
-    'WA',
-    47.6145,
-    -122.3201,
-    180,  -- 3 hour threshold
-    300,  -- $300/hour
-    8000,  -- $8,000 max
-    'active',
-    '2026-01-01',
-    'info@capitolhillfitness.com',
-    '206-555-0103'
+    status, effective_date, contact_email, contact_phone, created_at, updated_at
+) VALUES (
+    'BI-001', 'Pike Place Coffee Co', 'Coffee Shop', '98101',
+    '123 Pike St', 'Seattle', 'WA', 47.6097, -122.3425,
+    120, 500, 10000, 'active', '2026-01-01',
+    'owner@pikeplacecoffee.com', '206-555-0101', SYSUTCDATETIME(), SYSUTCDATETIME()
+);
+
+INSERT INTO policies (
+    policy_id, business_name, business_type, zip_code, address, city, state,
+    latitude, longitude, threshold_minutes, hourly_rate, max_payout,
+    status, effective_date, contact_email, contact_phone, created_at, updated_at
+) VALUES (
+    'BI-002', 'Broadway Restaurant & Bar', 'Restaurant', '98102',
+    '456 Broadway Ave E', 'Seattle', 'WA', 47.6234, -122.3212,
+    60, 750, 15000, 'active', '2026-01-01',
+    'manager@broadwayrestaurant.com', '206-555-0102', SYSUTCDATETIME(), SYSUTCDATETIME()
+);
+
+INSERT INTO policies (
+    policy_id, business_name, business_type, zip_code, address, city, state,
+    latitude, longitude, threshold_minutes, hourly_rate, max_payout,
+    status, effective_date, contact_email, contact_phone, created_at, updated_at
+) VALUES (
+    'BI-003', 'Capitol Hill Fitness Center', 'Gym', '98102',
+    '789 E Pine St', 'Seattle', 'WA', 47.6145, -122.3201,
+    180, 300, 8000, 'active', '2026-01-01',
+    'info@capitolhillfitness.com', '206-555-0103', SYSUTCDATETIME(), SYSUTCDATETIME()
 );
 
 -- ============================================================================
@@ -79,43 +57,23 @@ INSERT INTO policies (
 INSERT INTO policies (
     policy_id, business_name, business_type, zip_code, address, city, state,
     latitude, longitude, threshold_minutes, hourly_rate, max_payout,
-    status, effective_date, contact_email, contact_phone
-) VALUES
-(
-    'BI-004',
-    'Downtown Portland Bakery',
-    'Bakery',
-    '97201',
-    '321 SW Morrison St',
-    'Portland',
-    'OR',
-    45.5202,
-    -122.6742,
-    90,   -- 1.5 hour threshold
-    600,  -- $600/hour
-    12000,  -- $12,000 max
-    'active',
-    '2026-01-01',
-    'baker@portlandbakery.com',
-    '503-555-0104'
-),
-(
-    'BI-005',
-    'Pearl District Co-Working',
-    'Co-Working Space',
-    '97209',
-    '555 NW 13th Ave',
-    'Portland',
-    'OR',
-    45.5276,
-    -122.6847,
-    240,  -- 4 hour threshold
-    400,  -- $400/hour
-    20000,  -- $20,000 max
-    'active',
-    '2026-01-01',
-    'admin@pearlcowork.com',
-    '503-555-0105'
+    status, effective_date, contact_email, contact_phone, created_at, updated_at
+) VALUES (
+    'BI-004', 'Downtown Portland Bakery', 'Bakery', '97201',
+    '321 SW Morrison St', 'Portland', 'OR', 45.5202, -122.6742,
+    90, 600, 12000, 'active', '2026-01-01',
+    'baker@portlandbakery.com', '503-555-0104', SYSUTCDATETIME(), SYSUTCDATETIME()
+);
+
+INSERT INTO policies (
+    policy_id, business_name, business_type, zip_code, address, city, state,
+    latitude, longitude, threshold_minutes, hourly_rate, max_payout,
+    status, effective_date, contact_email, contact_phone, created_at, updated_at
+) VALUES (
+    'BI-005', 'Pearl District Co-Working', 'Co-Working Space', '97209',
+    '555 NW 13th Ave', 'Portland', 'OR', 45.5276, -122.6847,
+    240, 400, 20000, 'active', '2026-01-01',
+    'admin@pearlcowork.com', '503-555-0105', SYSUTCDATETIME(), SYSUTCDATETIME()
 );
 
 -- ============================================================================
@@ -125,43 +83,23 @@ INSERT INTO policies (
 INSERT INTO policies (
     policy_id, business_name, business_type, zip_code, address, city, state,
     latitude, longitude, threshold_minutes, hourly_rate, max_payout,
-    status, effective_date, contact_email, contact_phone
-) VALUES
-(
-    'BI-006',
-    'Mission District Brewery',
-    'Brewery',
-    '94110',
-    '888 Valencia St',
-    'San Francisco',
-    'CA',
-    37.7599,
-    -122.4214,
-    120,  -- 2 hour threshold
-    900,  -- $900/hour (high revenue business)
-    25000,  -- $25,000 max
-    'active',
-    '2026-01-01',
-    'owner@missionbrewery.com',
-    '415-555-0106'
-),
-(
-    'BI-007',
-    'Financial District Data Center',
-    'Data Center',
-    '94111',
-    '100 California St',
-    'San Francisco',
-    'CA',
-    37.7935,
-    -122.3989,
-    30,   -- 30 minute threshold (critical infrastructure)
-    2000, -- $2,000/hour (very high revenue impact)
-    50000,  -- $50,000 max
-    'active',
-    '2026-01-01',
-    'ops@fdatacenter.com',
-    '415-555-0107'
+    status, effective_date, contact_email, contact_phone, created_at, updated_at
+) VALUES (
+    'BI-006', 'Mission District Brewery', 'Brewery', '94110',
+    '888 Valencia St', 'San Francisco', 'CA', 37.7599, -122.4214,
+    120, 900, 25000, 'active', '2026-01-01',
+    'owner@missionbrewery.com', '415-555-0106', SYSUTCDATETIME(), SYSUTCDATETIME()
+);
+
+INSERT INTO policies (
+    policy_id, business_name, business_type, zip_code, address, city, state,
+    latitude, longitude, threshold_minutes, hourly_rate, max_payout,
+    status, effective_date, contact_email, contact_phone, created_at, updated_at
+) VALUES (
+    'BI-007', 'Financial District Data Center', 'Data Center', '94111',
+    '100 California St', 'San Francisco', 'CA', 37.7935, -122.3989,
+    30, 2000, 50000, 'active', '2026-01-01',
+    'ops@fdatacenter.com', '415-555-0107', SYSUTCDATETIME(), SYSUTCDATETIME()
 );
 
 -- ============================================================================
@@ -171,43 +109,23 @@ INSERT INTO policies (
 INSERT INTO policies (
     policy_id, business_name, business_type, zip_code, address, city, state,
     latitude, longitude, threshold_minutes, hourly_rate, max_payout,
-    status, effective_date, contact_email, contact_phone
-) VALUES
-(
-    'BI-008',
-    'Santa Monica Beach Cafe',
-    'Cafe',
-    '90401',
-    '1550 Ocean Ave',
-    'Santa Monica',
-    'CA',
-    34.0195,
-    -118.4912,
-    90,   -- 1.5 hour threshold
-    550,  -- $550/hour
-    10000,  -- $10,000 max
-    'active',
-    '2026-01-01',
-    'info@beachcafe.com',
-    '310-555-0108'
-),
-(
-    'BI-009',
-    'Hollywood Production Studio',
-    'Production Studio',
-    '90028',
-    '6500 Sunset Blvd',
-    'Los Angeles',
-    'CA',
-    34.0983,
-    -118.3267,
-    60,   -- 1 hour threshold (time-sensitive production)
-    1500, -- $1,500/hour
-    40000,  -- $40,000 max
-    'active',
-    '2026-01-01',
-    'production@hollywoodstudio.com',
-    '323-555-0109'
+    status, effective_date, contact_email, contact_phone, created_at, updated_at
+) VALUES (
+    'BI-008', 'Santa Monica Beach Cafe', 'Cafe', '90401',
+    '1550 Ocean Ave', 'Santa Monica', 'CA', 34.0195, -118.4912,
+    90, 550, 10000, 'active', '2026-01-01',
+    'info@beachcafe.com', '310-555-0108', SYSUTCDATETIME(), SYSUTCDATETIME()
+);
+
+INSERT INTO policies (
+    policy_id, business_name, business_type, zip_code, address, city, state,
+    latitude, longitude, threshold_minutes, hourly_rate, max_payout,
+    status, effective_date, contact_email, contact_phone, created_at, updated_at
+) VALUES (
+    'BI-009', 'Hollywood Production Studio', 'Production Studio', '90028',
+    '6500 Sunset Blvd', 'Los Angeles', 'CA', 34.0983, -118.3267,
+    60, 1500, 40000, 'active', '2026-01-01',
+    'production@hollywoodstudio.com', '323-555-0109', SYSUTCDATETIME(), SYSUTCDATETIME()
 );
 
 -- ============================================================================
@@ -217,43 +135,23 @@ INSERT INTO policies (
 INSERT INTO policies (
     policy_id, business_name, business_type, zip_code, address, city, state,
     latitude, longitude, threshold_minutes, hourly_rate, max_payout,
-    status, effective_date, contact_email, contact_phone
-) VALUES
-(
-    'BI-010',
-    'Manhattan Fine Dining',
-    'Restaurant',
-    '10022',
-    '300 Park Ave',
-    'New York',
-    'NY',
-    40.7614,
-    -73.9776,
-    45,   -- 45 minute threshold (high-end restaurant)
-    1200, -- $1,200/hour
-    30000,  -- $30,000 max
-    'active',
-    '2026-01-01',
-    'reservations@manhattanfine.com',
-    '212-555-0110'
-),
-(
-    'BI-011',
-    'Brooklyn Artisan Market',
-    'Retail',
-    '11211',
-    '200 Bedford Ave',
-    'Brooklyn',
-    'NY',
-    40.7181,
-    -73.9571,
-    120,  -- 2 hour threshold
-    400,  -- $400/hour
-    9000,  -- $9,000 max
-    'active',
-    '2026-01-01',
-    'market@brooklynartisan.com',
-    '718-555-0111'
+    status, effective_date, contact_email, contact_phone, created_at, updated_at
+) VALUES (
+    'BI-010', 'Manhattan Fine Dining', 'Restaurant', '10022',
+    '300 Park Ave', 'New York', 'NY', 40.7614, -73.9776,
+    45, 1200, 30000, 'active', '2026-01-01',
+    'reservations@manhattanfine.com', '212-555-0110', SYSUTCDATETIME(), SYSUTCDATETIME()
+);
+
+INSERT INTO policies (
+    policy_id, business_name, business_type, zip_code, address, city, state,
+    latitude, longitude, threshold_minutes, hourly_rate, max_payout,
+    status, effective_date, contact_email, contact_phone, created_at, updated_at
+) VALUES (
+    'BI-011', 'Brooklyn Artisan Market', 'Retail', '11211',
+    '200 Bedford Ave', 'Brooklyn', 'NY', 40.7181, -73.9571,
+    120, 400, 9000, 'active', '2026-01-01',
+    'market@brooklynartisan.com', '718-555-0111', SYSUTCDATETIME(), SYSUTCDATETIME()
 );
 
 -- ============================================================================
@@ -263,26 +161,13 @@ INSERT INTO policies (
 INSERT INTO policies (
     policy_id, business_name, business_type, zip_code, address, city, state,
     latitude, longitude, threshold_minutes, hourly_rate, max_payout,
-    status, effective_date, expiration_date, contact_email, contact_phone
-) VALUES
-(
-    'BI-999',
-    'Test Business - EXPIRED',
-    'Test',
-    '98101',
-    '999 Test St',
-    'Seattle',
-    'WA',
-    47.6062,
-    -122.3321,
-    60,
-    100,
-    1000,
-    'expired',
-    '2025-01-01',
-    '2025-12-31',
-    'test@example.com',
-    '555-555-5555'
+    status, effective_date, expiration_date, contact_email, contact_phone,
+    created_at, updated_at
+) VALUES (
+    'BI-999', 'Test Business - EXPIRED', 'Test', '98101',
+    '999 Test St', 'Seattle', 'WA', 47.6062, -122.3321,
+    60, 100, 1000, 'expired', '2025-01-01', '2025-12-31',
+    'test@example.com', '555-555-5555', SYSUTCDATETIME(), SYSUTCDATETIME()
 );
 
 -- ============================================================================
@@ -340,6 +225,3 @@ WHERE policy_id LIKE 'BI-%'
   AND status = 'active'
 GROUP BY business_type
 ORDER BY avg_rate DESC;
-
-PRINT 'Sample policies created successfully!';
-PRINT 'Total policies: ' + CAST((SELECT COUNT(*) FROM policies WHERE policy_id LIKE 'BI-%' AND status = 'active') AS VARCHAR);

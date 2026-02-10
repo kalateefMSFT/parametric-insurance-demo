@@ -1,7 +1,15 @@
--- ============================================================================
--- Microsoft Fabric Warehouse Schema
--- Parametric Insurance Demo - Power Outage Business Interruption
--- ============================================================================
+-- Fabric DW compatibility notes:
+--   * No PRIMARY/FOREIGN KEY or DEFAULT constraints
+--   * No IDENTITY columns or manual indexes (Fabric auto-manages storage)
+--   * No BIT or VARCHAR(MAX) types (use SMALLINT / VARCHAR(8000))
+--   * No GO batch separators, PRINT statements, stored procedures, or triggers
+--   * All temporal columns explicitly typed as DATETIME2(0)
+
+-- Drop dependent views first
+DROP VIEW IF EXISTS v_outage_impact;
+DROP VIEW IF EXISTS v_policy_performance;
+DROP VIEW IF EXISTS v_claim_statistics;
+DROP VIEW IF EXISTS v_active_claims;
 
 -- Drop existing tables (for clean setup)
 DROP TABLE IF EXISTS payouts;
@@ -9,15 +17,15 @@ DROP TABLE IF EXISTS claims;
 DROP TABLE IF EXISTS weather_data;
 DROP TABLE IF EXISTS social_signals;
 DROP TABLE IF EXISTS outage_events;
+DROP TABLE IF EXISTS outage_raw;
 DROP TABLE IF EXISTS policies;
 
 -- ============================================================================
 -- DIMENSION TABLES
 -- ============================================================================
 
--- Policies table
 CREATE TABLE policies (
-    policy_id VARCHAR(50) PRIMARY KEY,
+    policy_id VARCHAR(50) NOT NULL,
     business_name VARCHAR(200) NOT NULL,
     business_type VARCHAR(100),
     zip_code VARCHAR(10) NOT NULL,
@@ -29,146 +37,108 @@ CREATE TABLE policies (
     threshold_minutes INT NOT NULL,
     hourly_rate DECIMAL(10, 2) NOT NULL,
     max_payout DECIMAL(12, 2) NOT NULL,
-    status VARCHAR(20) DEFAULT 'active',
-    effective_date DATETIME2,
-    expiration_date DATETIME2,
+    status VARCHAR(20),
+    effective_date DATETIME2(0),
+    expiration_date DATETIME2(0),
     contact_email VARCHAR(200),
     contact_phone VARCHAR(20),
-    created_at DATETIME2 DEFAULT GETUTCDATE(),
-    updated_at DATETIME2 DEFAULT GETUTCDATE()
+    created_at DATETIME2(0),
+    updated_at DATETIME2(0)
 );
-
-CREATE INDEX idx_policies_zip ON policies(zip_code);
-CREATE INDEX idx_policies_status ON policies(status);
-CREATE INDEX idx_policies_location ON policies(latitude, longitude);
 
 -- ============================================================================
 -- FACT TABLES
 -- ============================================================================
 
--- Outage Events table
 CREATE TABLE outage_events (
-    event_id VARCHAR(100) PRIMARY KEY,
+    event_id VARCHAR(100) NOT NULL,
     utility_name VARCHAR(200) NOT NULL,
     zip_code VARCHAR(10),
     latitude DECIMAL(10, 8),
     longitude DECIMAL(11, 8),
     affected_customers INT,
-    outage_start DATETIME2 NOT NULL,
-    outage_end DATETIME2,
+    outage_start DATETIME2(0) NOT NULL,
+    outage_end DATETIME2(0),
     duration_minutes INT,
     status VARCHAR(20) NOT NULL,
     cause VARCHAR(100),
     reported_cause VARCHAR(100),
-    data_source VARCHAR(50) DEFAULT 'poweroutage.us',
-    last_updated DATETIME2 DEFAULT GETUTCDATE(),
-    created_at DATETIME2 DEFAULT GETUTCDATE()
+    data_source VARCHAR(50),
+    last_updated DATETIME2(0),
+    created_at DATETIME2(0)
 );
 
-CREATE INDEX idx_outage_events_zip ON outage_events(zip_code);
-CREATE INDEX idx_outage_events_status ON outage_events(status);
-CREATE INDEX idx_outage_events_start ON outage_events(outage_start);
-CREATE INDEX idx_outage_events_location ON outage_events(latitude, longitude);
-
--- Weather Data table
 CREATE TABLE weather_data (
-    weather_id INT IDENTITY(1,1) PRIMARY KEY,
+    weather_id INT,
     event_id VARCHAR(100),
     zip_code VARCHAR(10),
     latitude DECIMAL(10, 8),
     longitude DECIMAL(11, 8),
-    timestamp DATETIME2 NOT NULL,
+    [timestamp] DATETIME2(0) NOT NULL,
     temperature_f DECIMAL(5, 2),
     wind_speed_mph DECIMAL(5, 2),
     wind_gust_mph DECIMAL(5, 2),
     precipitation_inches DECIMAL(5, 2),
     humidity_percent INT,
     conditions VARCHAR(200),
-    severe_weather_alert BIT DEFAULT 0,
+    severe_weather_alert SMALLINT,
     alert_type VARCHAR(100),
     lightning_strikes INT,
-    ingestion_timestamp DATETIME2 DEFAULT GETUTCDATE(),
-    FOREIGN KEY (event_id) REFERENCES outage_events(event_id)
+    ingestion_timestamp DATETIME2(0)
 );
 
-CREATE INDEX idx_weather_zip ON weather_data(zip_code);
-CREATE INDEX idx_weather_timestamp ON weather_data(timestamp);
-CREATE INDEX idx_weather_event ON weather_data(event_id);
-
--- Social Signals table (Twitter, social media mentions)
 CREATE TABLE social_signals (
-    signal_id VARCHAR(100) PRIMARY KEY,
+    signal_id VARCHAR(100) NOT NULL,
     platform VARCHAR(50) NOT NULL,
-    text VARCHAR(500),
+    [text] VARCHAR(500),
     zip_code VARCHAR(10),
     latitude DECIMAL(10, 8),
     longitude DECIMAL(11, 8),
-    timestamp DATETIME2 NOT NULL,
+    [timestamp] DATETIME2(0) NOT NULL,
     user_id VARCHAR(100),
-    engagement_count INT DEFAULT 0,
+    engagement_count INT,
     relevance_score DECIMAL(3, 2),
     event_id VARCHAR(100),
-    created_at DATETIME2 DEFAULT GETUTCDATE(),
-    FOREIGN KEY (event_id) REFERENCES outage_events(event_id)
+    created_at DATETIME2(0)
 );
 
-CREATE INDEX idx_social_signals_event ON social_signals(event_id);
-CREATE INDEX idx_social_signals_timestamp ON social_signals(timestamp);
-
--- Claims table
 CREATE TABLE claims (
-    claim_id VARCHAR(100) PRIMARY KEY,
+    claim_id VARCHAR(100) NOT NULL,
     policy_id VARCHAR(50) NOT NULL,
     outage_event_id VARCHAR(100) NOT NULL,
     status VARCHAR(20) NOT NULL,
-    filed_at DATETIME2 DEFAULT GETUTCDATE(),
-    validated_at DATETIME2,
-    approved_at DATETIME2,
-    denied_at DATETIME2,
+    filed_at DATETIME2(0),
+    validated_at DATETIME2(0),
+    approved_at DATETIME2(0),
+    denied_at DATETIME2(0),
     denial_reason VARCHAR(500),
     payout_amount DECIMAL(12, 2),
     ai_confidence_score DECIMAL(3, 2),
-    ai_reasoning VARCHAR(MAX),
-    fraud_flags VARCHAR(MAX), -- JSON array
-    created_at DATETIME2 DEFAULT GETUTCDATE(),
-    updated_at DATETIME2 DEFAULT GETUTCDATE(),
-    FOREIGN KEY (policy_id) REFERENCES policies(policy_id),
-    FOREIGN KEY (outage_event_id) REFERENCES outage_events(event_id)
+    ai_reasoning VARCHAR(8000),
+    fraud_flags VARCHAR(8000),
+    created_at DATETIME2(0),
+    updated_at DATETIME2(0)
 );
 
-CREATE INDEX idx_claims_policy ON claims(policy_id);
-CREATE INDEX idx_claims_event ON claims(outage_event_id);
-CREATE INDEX idx_claims_status ON claims(status);
-CREATE INDEX idx_claims_filed ON claims(filed_at);
-
--- Payouts table
 CREATE TABLE payouts (
-    payout_id VARCHAR(100) PRIMARY KEY,
+    payout_id VARCHAR(100) NOT NULL,
     claim_id VARCHAR(100) NOT NULL,
     policy_id VARCHAR(50) NOT NULL,
     amount DECIMAL(12, 2) NOT NULL,
     status VARCHAR(20) NOT NULL,
-    initiated_at DATETIME2 DEFAULT GETUTCDATE(),
-    completed_at DATETIME2,
+    initiated_at DATETIME2(0),
+    completed_at DATETIME2(0),
     transaction_id VARCHAR(100),
-    payment_method VARCHAR(50) DEFAULT 'ACH',
-    created_at DATETIME2 DEFAULT GETUTCDATE(),
-    FOREIGN KEY (claim_id) REFERENCES claims(claim_id),
-    FOREIGN KEY (policy_id) REFERENCES policies(policy_id)
+    payment_method VARCHAR(50),
+    created_at DATETIME2(0)
 );
-
-CREATE INDEX idx_payouts_claim ON payouts(claim_id);
-CREATE INDEX idx_payouts_policy ON payouts(policy_id);
-CREATE INDEX idx_payouts_status ON payouts(status);
-CREATE INDEX idx_payouts_initiated ON payouts(initiated_at);
 
 -- ============================================================================
 -- RAW DATA TABLE (for Lakehouse)
 -- ============================================================================
 
--- Raw outage data from APIs
 CREATE TABLE outage_raw (
-    id INT IDENTITY(1,1) PRIMARY KEY,
+    id INT,
     event_id VARCHAR(100),
     utility_name VARCHAR(200),
     state VARCHAR(2),
@@ -177,19 +147,15 @@ CREATE TABLE outage_raw (
     longitude DECIMAL(11, 8),
     zip_code VARCHAR(10),
     data_source VARCHAR(50),
-    raw_json VARCHAR(MAX),
-    last_updated DATETIME2,
-    ingestion_timestamp DATETIME2 DEFAULT GETUTCDATE()
+    raw_json VARCHAR(8000),
+    last_updated DATETIME2(0),
+    ingestion_timestamp DATETIME2(0)
 );
-
-CREATE INDEX idx_outage_raw_event ON outage_raw(event_id);
-CREATE INDEX idx_outage_raw_ingestion ON outage_raw(ingestion_timestamp);
-
+GO
 -- ============================================================================
 -- ANALYTICS VIEWS
 -- ============================================================================
 
--- Active Claims View
 CREATE VIEW v_active_claims AS
 SELECT 
     c.claim_id,
@@ -204,12 +170,10 @@ SELECT
     o.duration_minutes,
     o.affected_customers
 FROM claims c
-JOIN policies p ON c.policy_id = p.policy_id
-JOIN outage_events o ON c.outage_event_id = o.event_id
+INNER JOIN policies p ON c.policy_id = p.policy_id
+INNER JOIN outage_events o ON c.outage_event_id = o.event_id
 WHERE c.status IN ('pending', 'validating', 'approved');
-
 GO
-
 -- Claim Summary Statistics
 CREATE VIEW v_claim_statistics AS
 SELECT 
@@ -221,10 +185,8 @@ SELECT
     SUM(CASE WHEN payout_amount IS NOT NULL THEN payout_amount ELSE 0 END) as total_payout,
     AVG(ai_confidence_score) as avg_confidence_score
 FROM claims
-WHERE filed_at >= DATEADD(day, -30, GETUTCDATE());
-
+WHERE filed_at >= DATEADD(day, -30, SYSUTCDATETIME());
 GO
-
 -- Policy Performance View
 CREATE VIEW v_policy_performance AS
 SELECT 
@@ -240,9 +202,7 @@ FROM policies p
 LEFT JOIN claims c ON p.policy_id = c.policy_id
 WHERE p.status = 'active'
 GROUP BY p.policy_id, p.business_name, p.zip_code;
-
 GO
-
 -- Outage Impact Analysis
 CREATE VIEW v_outage_impact AS
 SELECT 
@@ -261,11 +221,10 @@ SELECT
 FROM outage_events o
 LEFT JOIN claims c ON o.event_id = c.outage_event_id
 LEFT JOIN weather_data w ON o.event_id = w.event_id
-WHERE o.status = 'active' OR o.outage_end >= DATEADD(day, -7, GETUTCDATE())
+WHERE o.status = 'active' OR o.outage_end >= DATEADD(day, -7, SYSUTCDATETIME())
 GROUP BY o.event_id, o.utility_name, o.zip_code, o.outage_start, 
          o.duration_minutes, o.affected_customers, w.severe_weather_alert,
          w.wind_speed_mph, w.conditions;
-
 GO
 
 -- ============================================================================
@@ -378,16 +337,6 @@ FROM INFORMATION_SCHEMA.TABLES t
 WHERE TABLE_TYPE = 'BASE TABLE'
 ORDER BY TABLE_NAME;
 
--- Verify indexes
-SELECT 
-    t.name AS table_name,
-    i.name AS index_name,
-    i.type_desc AS index_type
-FROM sys.indexes i
-JOIN sys.tables t ON i.object_id = t.object_id
-WHERE i.name IS NOT NULL
-ORDER BY t.name, i.name;
-
 -- Verify views
 SELECT name 
 FROM sys.views 
@@ -398,4 +347,3 @@ SELECT name
 FROM sys.procedures 
 ORDER BY name;
 
-PRINT 'Schema creation complete!';

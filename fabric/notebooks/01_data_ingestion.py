@@ -231,7 +231,6 @@ def fetch_noaa_weather(lat: float, lon: float) -> Optional[Dict[str, Any]]:
 # Import PRESTO simulation tool
 import sys
 sys.path.append('/lakehouse/default/Files/shared')
-import presto
 from presto import PRESTO, generate_scenario
 
 print(f"Starting power outage data simulation at {datetime.utcnow()}")

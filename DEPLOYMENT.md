@@ -167,6 +167,10 @@ You should see 5 resources created.
 1. In workspace, click **Import** → **Notebook**
 2. Upload: `fabric/notebooks/01_data_ingestion.py`
 3. Attach to lakehouse: `parametric_insurance_lakehouse`
+4. Create subdirectory in the lakehouse under Files called shared. (`/lakehouse/default/Files/shared`)
+5. Take the presto.py from the repository shared directory (`shared/presto.py`) and upload it to the newly created shared directory in the Lakehouse.
+
+(This py file is needed for the notebook to be able to run the PRESTO simulations.)
 
 ### Step 7: Create Data Pipeline
 
