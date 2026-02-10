@@ -17,7 +17,7 @@ pandas==2.2.0
 numpy==1.26.3
 
 # HTTP requests
-requests==2.31.0
+requests==2.32.4
 
 # Configuration
 python-dotenv==1.0.1
