@@ -96,7 +96,7 @@ class DemoConfig:
     # -- Foundry / Azure OpenAI Agent (optional) --
     foundry_endpoint: str = ""
     foundry_api_key: str = ""
-    foundry_model: str = "gpt-4"
+    foundry_model: str = "gpt-4.1"
 
     # -- Azure Event Grid (optional — leave blank for local-only mode) --
     eventgrid_topic_endpoint: str = ""
@@ -542,10 +542,34 @@ sample_policies = [
      "hourly_rate": 400.0, "max_payout": 9000.0, "status": "active",
      "effective_date": datetime(2026, 1, 1), "expiration_date": None,
      "contact_email": "market@brooklynartisan.com", "contact_phone": "718-555-0111",
-     "created_at": now, "updated_at": now},
+     "created_at": now, "updated_at": now}
 ]
 
-policies_df = spark.createDataFrame(sample_policies)
+now = datetime.now()
+
+policy_schema = StructType([
+    StructField("policy_id", StringType()),
+    StructField("business_name", StringType()),
+    StructField("business_type", StringType()),
+    StructField("zip_code", StringType()),
+    StructField("address", StringType()),
+    StructField("city", StringType()),
+    StructField("state", StringType()),
+    StructField("latitude", DoubleType()),
+    StructField("longitude", DoubleType()),
+    StructField("threshold_minutes", IntegerType()),
+    StructField("hourly_rate", DoubleType()),
+    StructField("max_payout", DoubleType()),
+    StructField("status", StringType()),
+    StructField("effective_date", TimestampType()),
+    StructField("expiration_date", TimestampType()),
+    StructField("contact_email", StringType()),
+    StructField("contact_phone", StringType()),
+    StructField("created_at", TimestampType()),
+    StructField("updated_at", TimestampType())
+])
+
+policies_df = spark.createDataFrame(sample_policies, schema=policy_schema)
 policies_df.write.format("delta").mode("overwrite").saveAsTable("policies")
 print(f"✅ Loaded {len(sample_policies)} sample policies.")
 display(spark.sql("SELECT policy_id, business_name, city, state, threshold_minutes, hourly_rate, max_payout FROM policies WHERE status='active' ORDER BY city"))
@@ -930,14 +954,34 @@ for i, match in enumerate(matches, 1):
             "weather_factor": result.get("weather_factor", 1.0),
             "business_name": m["business_name"],
             "city": m["outage_city"],
-            "state": m["outage_state"],
+            "state": m["outage_state"]
         },
     )
     print(f"     📡 Published: {evt_type}")
     print()
 
 if claim_records:
-    spark.createDataFrame(claim_records).write.format("delta").mode("append").saveAsTable("claims")
+    claim_schema = StructType([
+        StructField("claim_id", StringType()),
+        StructField("policy_id", StringType()), 
+        StructField("outage_event_id", StringType()),
+        StructField("status", StringType()), 
+        StructField("filed_at", TimestampType()), 
+        StructField("validated_at", TimestampType()),
+        StructField("approved_at", TimestampType()), 
+        StructField("denied_at", TimestampType()), 
+        StructField("denial_reason", StringType()),
+        StructField("payout_amount", DoubleType()), 
+        StructField("ai_confidence_score", DoubleType()), 
+        StructField("ai_reasoning", StringType()),
+        StructField("fraud_flags", StringType()), 
+        StructField("weather_factor", DoubleType()), 
+        StructField("severity_assessment", StringType()),
+        StructField("created_at", TimestampType()), 
+        StructField("updated_at", TimestampType())
+
+    ])
+    spark.createDataFrame(claim_records, claim_schema).write.format("delta").mode("append").saveAsTable("claims")
     approved_count = sum(1 for c in claim_records if c["status"]=="approved")
     denied_count = len(claim_records) - approved_count
     print(f"✅ Persisted {len(claim_records)} claims ({approved_count} approved, {denied_count} denied).")
@@ -1017,9 +1061,21 @@ else:
 # COMMAND ----------
 
 # ---- Persist audit log to Delta ----
+now = datetime.now()
 if eg_client.audit_log:
     audit_rows = [{**a, "created_at": now} for a in eg_client.audit_log]
-    spark.createDataFrame(audit_rows).write.format("delta").mode("append").saveAsTable("event_audit_log")
+    audit_rows_schema = StructType([
+        StructField("sequence", IntegerType()),
+        StructField("event_id", StringType()), 
+        StructField("event_type", StringType()),
+        StructField("subject", StringType()), 
+        StructField("event_time", StringType()),
+        StructField("data_summary", StringType()), 
+        StructField("status", StringType()), 
+        StructField("error", StringType()),
+        StructField("created_at", TimestampType())
+    ])
+    spark.createDataFrame(audit_rows, audit_rows_schema).write.format("delta").mode("append").saveAsTable("event_audit_log")
     print(f"✅ Persisted {len(audit_rows)} event audit records.")
 
 # COMMAND ----------
