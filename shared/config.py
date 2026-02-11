@@ -21,7 +21,7 @@ class AzureConfig:
         return cls(
             subscription_id=os.getenv('AZURE_SUBSCRIPTION_ID', ''),
             resource_group=os.getenv('RESOURCE_GROUP', 'parametric-insurance-rg'),
-            location=os.getenv('LOCATION', 'eastus')
+            location=os.getenv('LOCATION', 'westus3')
         )
 
 
@@ -53,7 +53,8 @@ class FabricConfig:
     """Microsoft Fabric configuration"""
     workspace_id: str
     lakehouse_id: str
-    warehouse_connection: str
+    warehouse_server: str
+    warehouse_database: str = "parametric_insurance_warehouse"
     lakehouse_name: str = "parametric_insurance_lakehouse"
     warehouse_name: str = "parametric_insurance_warehouse"
     
@@ -70,7 +71,8 @@ class FabricConfig:
         return cls(
             workspace_id=os.getenv('FABRIC_WORKSPACE_ID', ''),
             lakehouse_id=os.getenv('FABRIC_LAKEHOUSE_ID', ''),
-            warehouse_connection=os.getenv('FABRIC_WAREHOUSE_CONNECTION', '')
+            warehouse_server=os.getenv('FABRIC_WAREHOUSE_SERVER', ''),
+            warehouse_database=os.getenv('FABRIC_DATABASE', 'parametric_insurance_warehouse')
         )
 
 
@@ -164,8 +166,8 @@ def validate_config():
     if not fabric_config.workspace_id:
         errors.append("FABRIC_WORKSPACE_ID not set")
     
-    if not fabric_config.warehouse_connection:
-        errors.append("FABRIC_WAREHOUSE_CONNECTION not set")
+    if not fabric_config.warehouse_server:
+        errors.append("FABRIC_WAREHOUSE_SERVER not set")
     
     if not foundry_config.endpoint:
         errors.append("FOUNDRY_ENDPOINT not set")
@@ -187,6 +189,7 @@ if __name__ == "__main__":
         print(f"  Resource Group: {azure_config.resource_group}")
         print(f"  Event Grid: {eventgrid_config.topic_endpoint}")
         print(f"  Fabric Workspace: {fabric_config.workspace_id}")
+        print(f"  Fabric Warehouse Server: {fabric_config.warehouse_server}")
         print(f"  Foundry Endpoint: {foundry_config.endpoint}")
     except ValueError as e:
         print(f"✗ Configuration error: {e}")
