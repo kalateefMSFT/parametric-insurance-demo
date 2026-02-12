@@ -913,23 +913,12 @@ def foundry_agent_validation(policy, outage, weather=None):
             credential=DefaultAzureCredential() # <--- One day this will work with the Workspace Identity from within a Fabric notebook
         )
 
-        user_message = f"""You are an expert parametric insurance claims validator.
-POLICY: {json.dumps(policy, default=str)}
-OUTAGE: {json.dumps(outage, default=str)}
-WEATHER: {json.dumps(weather, default=str) if weather else "N/A"}
-Respond with ONLY valid JSON: {{"decision":"approved/denied","confidence_score":0.0-1.0,"payout_amount":$,"reasoning":"...","severity_assessment":"low|medium|high|severe","weather_factor":1.0-1.5,"fraud_signals":[],"evidence":[{{"type":"...","value":"..."}}]}}
-Rules: duration>threshold=approved, planned_maintenance=denied, weather factors: low=1.0 medium=1.1 high=1.2 severe=1.5, payout=excess_hours*rate*factor capped at max."""
+        user_message = f"""POLICY: {json.dumps(policy, default=str)}
+                           OUTAGE: {json.dumps(outage, default=str)}
+                           WEATHER: {json.dumps(weather, default=str) if weather else "N/A"}"""
 
         # Use an existing agent by Name, or create one on the fly
-        if hasattr(config, "foundry_agent_id") and config.foundry_agent_id:
-            claims_validator_agent = agents_client.get_agent(config.foundry_agent_id)
-        else:
-            claims_validator_agent = agents_client.create_agent(
-                model=config.foundry_model,
-                name="claims-validator",
-                instructions="Insurance claims validator. Respond with JSON only. No markdown fences.",
-                temperature=0.2,
-            )
+        claims_validator_agent = agents_client.get_agent(config.foundry_agent_id)
 
         # Create a thread, post the message, and run
         thread = agents_client.threads.create()

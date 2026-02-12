@@ -127,7 +127,7 @@ VALIDATION TASKS:
 
 OUTPUT FORMAT (respond with valid JSON only):
 {
-    "decision": "approve" or "deny",
+    "decision": "approved" or "denied",
     "confidence_score": 0.0 to 1.0,
     "payout_amount": dollar amount,
     "reasoning": "detailed explanation of your decision",
