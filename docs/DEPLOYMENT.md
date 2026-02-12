@@ -39,9 +39,13 @@ This is the minimum viable demo — no Azure subscription required.
 ### 1.3 Import the Notebook
 
 1. Click **Import** → **Notebook**
-2. Upload: `fabric/notebooks/parametric_insurance_unified_demo.py`
-3. Open the notebook
-4. Click **Lakehouse** in the left panel → attach to `parametric_insurance_lakehouse`
+2. You have options for the notebook: 
+    - `fabric/notebooks/parametric_insurance_unified_demo.ipynb` targets the Classic Microsoft Foundry Agents that uses Threads
+    - `fabric/notebooks/parametric_insurance_unified_demo_new.ipynb` targets the New Microsoft Foundry Agents that uses Responses
+
+3. Upload: Chosen notebook to the `ParametricInsurance` workspace
+4. Open the notebook
+5. Click **Lakehouse** in the left panel → attach to `parametric_insurance_lakehouse`
 
 ### 1.4 Run the Demo
 
@@ -177,28 +181,17 @@ The notebook still runs the full pipeline internally (for demo visibility), and 
 
 ## 4. Add Foundry AI Agent
 
-### Option A: Azure OpenAI (Recommended)
-
-1. Create an Azure OpenAI resource in the Azure Portal
-2. Deploy a `gpt-4` model
-3. Set in the notebook's `DemoConfig`:
-   ```python
-   foundry_endpoint = "https://<your-resource>.openai.azure.com/"
-   foundry_api_key = "<your-key>"
-   foundry_model = "gpt-4"
-   ```
-
-### Option B: Microsoft Foundry Portal
+### Option A: Microsoft Foundry Portal
 
 1. Go to [Microsoft Foundry](https://foundry.microsoft.com/)
-2. Create an agent named `Claims Validator`
+2. Create an agent named `ClaimsValidator`
 3. Upload `archive/v1/foundry/agents/claims_validator_agent.py` as reference
 4. Configure the agent with the validation prompt
 5. Use the agent's endpoint and key in the notebook config
 
 ### Option C: Rule-Based Fallback (Default)
 
-Leave `foundry_endpoint` and `foundry_api_key` blank. The notebook automatically uses a deterministic rule-based engine that produces the same output schema (confidence scores, severity assessment, weather factors, fraud detection).
+Leave `foundry_endpoint` and `foundry_agent` blank. The notebook automatically uses a deterministic rule-based engine that produces the same output schema (confidence scores, severity assessment, weather factors, fraud detection).
 
 ---
 
