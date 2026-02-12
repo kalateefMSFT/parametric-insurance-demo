@@ -52,6 +52,8 @@
 
 # COMMAND ----------
 
+%pip install azure-ai-projects==2.0.0b3 azure-core azure-ai-agents
+
 import os
 import sys
 import json
@@ -61,6 +63,7 @@ import random
 import requests
 import warnings
 import traceback
+import notebookutils
 from datetime import datetime, timedelta
 from dataclasses import dataclass, field, asdict
 from typing import List, Dict, Any, Optional, Tuple
@@ -91,16 +94,15 @@ class DemoConfig:
 
     # -- NOAA Weather API (free) --
     noaa_api_url: str = "https://api.weather.gov"
-    noaa_user_agent: str = "ParametricInsuranceDemo/1.0 (demo@example.com)"
+    noaa_user_agent: str = "ParametricInsuranceDemo/1.0 (kalateef@microsoft.com)"
 
-    # -- Foundry / Azure OpenAI Agent (optional) --
-    foundry_endpoint: str = ""
-    foundry_api_key: str = ""
-    foundry_model: str = "gpt-4.1"
+    # -- Foundry Agent (Don't use the "New Foundry" experience to create your agent, it won't work. Use the legacy Agent experience) --
+    foundry_endpoint: str = "<foundry-endpoint>"
+    foundry_agent_id: str = "<agent_id>"
 
     # -- Azure Event Grid (optional — leave blank for local-only mode) --
-    eventgrid_topic_endpoint: str = ""
-    eventgrid_topic_key: str = ""
+    eventgrid_topic_endpoint: str = "<eventgrid_topic_endpoint>"
+    eventgrid_topic_key: str = "<eventgrid_topic_key>"
 
     # -- Event types (match existing Azure Function subscriptions) --
     EVT_OUTAGE_DETECTED: str = "outage.detected"
@@ -119,9 +121,15 @@ config = DemoConfig()
 
 # Override from environment variables / notebook widgets
 config.foundry_endpoint        = os.getenv("FOUNDRY_ENDPOINT", config.foundry_endpoint)
-config.foundry_api_key         = os.getenv("FOUNDRY_API_KEY", config.foundry_api_key)
 config.eventgrid_topic_endpoint = os.getenv("EVENTGRID_TOPIC_ENDPOINT", config.eventgrid_topic_endpoint)
 config.eventgrid_topic_key     = os.getenv("EVENTGRID_KEY", config.eventgrid_topic_key)
+
+# Create a Variable Library (eg. "environmentVariables") in Fabric workspace to store these variables
+environment_library = notebookutils.variableLibrary.getLibrary("environmentVariables") 
+
+os.environ["AZURE_CLIENT_ID"] = environment_library.AZURE_CLIENT_ID
+os.environ["AZURE_TENANT_ID"] = environment_library.AZURE_TENANT_ID
+os.environ["AZURE_CLIENT_SECRET"] = environment_library.AZURE_CLIENT_SECRET
 
 # Detect Fabric
 try:
@@ -692,6 +700,8 @@ if len(raw_outages) > 5: print(f"  ... and {len(raw_outages)-5} more")
 significant_outages = [o for o in raw_outages if o["affected_customers"] >= config.min_customer_impact]
 print(f"📊 Significant outages (≥{config.min_customer_impact} customers): {len(significant_outages)} / {len(raw_outages)}")
 
+now = datetime.now()
+
 outage_schema = StructType([
     StructField("event_id", StringType()), StructField("utility_name", StringType()),
     StructField("zip_code", StringType()), StructField("city", StringType()),
@@ -758,8 +768,18 @@ for o in significant_outages:
             "observation_time":datetime.utcnow(),"created_at":now})
         print(f"  ✓ {ck}: {w['temperature_f']}°F, wind {w['wind_speed_mph']} mph, {w['conditions']}")
 
+weather_data_schema = StructType([
+    StructField("weather_id", StringType()), StructField("event_id", StringType()),
+    StructField("zip_code", StringType()), StructField("latitude", DoubleType()),
+    StructField("longitude", DoubleType()), StructField("temperature_f", DoubleType()),
+    StructField("wind_speed_mph", DoubleType()), StructField("wind_gust_mph", DoubleType()),
+    StructField("conditions", StringType()), StructField("severe_weather_alert", BooleanType()),
+    StructField("alert_type", StringType()), StructField("observation_time", TimestampType()),
+    StructField("created_at", TimestampType())
+])
+
 if weather_records:
-    spark.createDataFrame(weather_records).write.format("delta").mode("append").saveAsTable("weather_data")
+    spark.createDataFrame(weather_records, weather_data_schema).write.format("delta").mode("append").saveAsTable("weather_data")
     print(f"\n✅ Saved weather for {len(weather_records)} locations.")
 
 weather_lookup = {}
@@ -879,27 +899,84 @@ def rule_based_validation(policy, outage, weather=None):
 
 def foundry_agent_validation(policy, outage, weather=None):
     try:
-        from openai import AzureOpenAI
+        from azure.ai.agents import AgentsClient
+        from azure.identity import DefaultAzureCredential # <--- One day this will work with the Workspace Identity from within a Fabric notebook
     except ImportError:
         return rule_based_validation(policy, outage, weather)
-    if not config.foundry_endpoint or not config.foundry_api_key:
+
+    if not config.foundry_endpoint or not config.foundry_agent_id:
         return rule_based_validation(policy, outage, weather)
+
     try:
-        client = AzureOpenAI(azure_endpoint=config.foundry_endpoint, api_key=config.foundry_api_key, api_version="2024-02-01")
-        prompt = f"""You are an expert parametric insurance claims validator.
+        agents_client = AgentsClient(
+            endpoint=config.foundry_endpoint,  # https://<resource>.services.ai.azure.com/api/projects/<project>
+            credential=DefaultAzureCredential() # <--- One day this will work with the Workspace Identity from within a Fabric notebook
+        )
+
+        user_message = f"""You are an expert parametric insurance claims validator.
 POLICY: {json.dumps(policy, default=str)}
 OUTAGE: {json.dumps(outage, default=str)}
 WEATHER: {json.dumps(weather, default=str) if weather else "N/A"}
 Respond with ONLY valid JSON: {{"decision":"approved/denied","confidence_score":0.0-1.0,"payout_amount":$,"reasoning":"...","severity_assessment":"low|medium|high|severe","weather_factor":1.0-1.5,"fraud_signals":[],"evidence":[{{"type":"...","value":"..."}}]}}
 Rules: duration>threshold=approved, planned_maintenance=denied, weather factors: low=1.0 medium=1.1 high=1.2 severe=1.5, payout=excess_hours*rate*factor capped at max."""
-        r = client.chat.completions.create(model=config.foundry_model,
-            messages=[{"role":"system","content":"Insurance claims validator. JSON only."},{"role":"user","content":prompt}],
-            temperature=0.2, max_tokens=2000)
-        txt = r.choices[0].message.content.strip()
-        if txt.startswith("```"): txt = txt.split("\n",1)[1].rsplit("```",1)[0].strip()
+
+        # Use an existing agent by Name, or create one on the fly
+        if hasattr(config, "foundry_agent_id") and config.foundry_agent_id:
+            claims_validator_agent = agents_client.get_agent(config.foundry_agent_id)
+        else:
+            claims_validator_agent = agents_client.create_agent(
+                model=config.foundry_model,
+                name="claims-validator",
+                instructions="Insurance claims validator. Respond with JSON only. No markdown fences.",
+                temperature=0.2,
+            )
+
+        # Create a thread, post the message, and run
+        thread = agents_client.threads.create()
+        agents_client.messages.create(
+            thread_id=thread.id,
+            role="user",
+            content=user_message,
+        )
+        run = agents_client.runs.create_and_process(
+            thread_id=thread.id,
+            agent_id=claims_validator_agent.id,
+        )
+
+        # Retrieve the assistant's response
+        messages = agents_client.messages.list(thread_id=thread.id)
+        # Messages come newest-first; grab the last assistant message
+        txt = None
+        for msg in messages:
+            if msg.role == "assistant":
+                for block in msg.content:
+                    if hasattr(block, "text"):
+                        txt = block.text.value
+                        break
+                if txt:
+                    break
+
+        if not txt:
+            print("  ⚠️  Foundry agent returned no response")
+            return rule_based_validation(policy, outage, weather)
+
+        # Clean markdown fences if present
+        txt = txt.strip()
+        if txt.startswith("```"):
+            txt = txt.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+
+        print(f" Response from {claims_validator_agent.name}: {txt}")
+
+        # Cleanup: delete thread (and agent if we created it ad-hoc)
+        # client.agents.threads.delete(thread_id=thread.id)
+        if not (hasattr(config, "foundry_agent_id") and config.foundry_agent_id):
+            claims_validator_agent.delete_agent(agent_id=claims_validator_agent.id)
+
         return json.loads(txt)
+
     except Exception as e:
-        print(f"  ⚠️  Foundry error: {e}"); return rule_based_validation(policy, outage, weather)
+        print(f"  ⚠️  Foundry agent error: {e}")
+        return rule_based_validation(policy, outage, weather)
 
 # ---- Validate all matched claims ----
 print(f"🤖 Validating {len(matches)} claims...")

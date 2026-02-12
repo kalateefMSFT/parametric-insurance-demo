@@ -12,7 +12,7 @@
 ## Quick Setup Checklist
 
 - [ ] Install Power BI Desktop
-- [ ] Connect to Fabric Warehouse
+- [ ] Connect to Fabric Lakehouse
 - [ ] Import tables (claims, policies, outages, payouts, weather)
 - [ ] Create relationships
 - [ ] Add DAX measures
@@ -252,7 +252,7 @@ SELECT * FROM v_policy_performance
 
 ```
 Server: <workspace>.datawarehouse.fabric.microsoft.com
-Database: parametric_insurance_warehouse
+Database: parametric_insurance_lakehouse
 Authentication: Microsoft Account
 ```
 

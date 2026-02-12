@@ -17,7 +17,7 @@ Complete guide to building the Parametric Insurance monitoring dashboard in Powe
 3. Enter connection details:
    ```
    Server: <workspace>.datawarehouse.fabric.microsoft.com
-   Database: parametric_insurance_warehouse
+   Database: parametric_insurance_lakehouse
    ```
 4. Authentication: **Microsoft Account**
 5. Select tables and views
