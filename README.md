@@ -57,9 +57,14 @@ Dashboard Summary + Event Audit Log
 
 ### Step 2 — Import the Notebook
 
-1. In your workspace, click **Import** → **Notebook**
-2. Upload `fabric/notebooks/parametric_insurance_unified_demo.py`
-3. Open the notebook and click **Lakehouse** → attach to `parametric_insurance_lakehouse`
+1. Click **Import** → **Notebook**
+2. You have options for the notebook: 
+    - `fabric/notebooks/parametric_insurance_unified_demo.ipynb` targets the Classic Microsoft Foundry Agents that uses Threads
+    - `fabric/notebooks/parametric_insurance_unified_demo_new.ipynb` targets the New Microsoft Foundry Agents that uses Responses
+
+3. Upload: Chosen notebook to the `ParametricInsurance` workspace
+4. Open the notebook
+5. Click **Lakehouse** in the left panel → attach to `parametric_insurance_lakehouse`
 
 ### Step 3 — Configure (Optional)
 
@@ -109,7 +114,11 @@ parametric-insurance-demo/
 │
 ├── fabric/
 │   └── notebooks/
-│       └── parametric_insurance_unified_demo.py   ← THE NOTEBOOK (run this)
+│       └── parametric_insurance_unified_demo.py   ← The legacy notebook
+│       └── parametric_insurance_unified_demo.ipynb   ← The notebook targeting the Classic Foundry Agents
+│       └── parametric_insurance_unified_demo_new.ipynb   ← The notebook targeting the New Foundry Agent Experience
+│   └── sql/
+│       └── additional_sample_policies.sql   ← The notebook creates 11 policies, this is 40 more.
 │
 ├── setup/
 │   ├── azure-setup.sh          # Create Event Grid + Functions (optional)

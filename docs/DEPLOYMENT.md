@@ -90,7 +90,7 @@ It outputs the **endpoint** and **key** and writes them to `.env`.
 Set these values in the `DemoConfig` class (Step 0 of the notebook):
 
 ```python
-eventgrid_topic_endpoint = "https://parametric-insurance-events.<region>.eventgrid.azure.net/api/events"
+eventgrid_topic_endpoint = "https://<topic-name>.<region>.eventgrid.azure.net/api/events"
 eventgrid_topic_key = "<your-key-from-setup-output>"
 ```
 
