@@ -92,7 +92,7 @@ foundry_api_key: str = "your-key"
 Click **Run All**. The notebook will:
 
 1. Create 7 Delta tables (policies, outage_events, weather_data, claims, payouts, outage_raw, event_audit_log)
-2. Load 11 sample policies across 5 US cities
+2. Load 250 sample policies across 40 US cities
 3. Simulate power outages with PRESTO
 4. Fetch live weather from NOAA (free)
 5. Match outages to policies and publish `outage.detected` events
