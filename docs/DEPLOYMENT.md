@@ -36,18 +36,22 @@ This is the minimum viable demo — no Azure subscription required.
 2. Name: `parametric_insurance_lakehouse`
 3. Wait ~30 seconds for provisioning
 
-### 1.3 Import the Notebook
+### 1.3 Import the Notebooks
 
 1. Click **Import** → **Notebook**
-2. You have options for the notebook: 
+2. `fabric/notebooks/schema_load_with_policies.ipynb`
+   - This creates the schema and load the sample policies
+3. You have options for the demo notebook: 
     - `fabric/notebooks/parametric_insurance_unified_demo.ipynb` targets the Classic Microsoft Foundry Agents that uses Threads
     - `fabric/notebooks/parametric_insurance_unified_demo_new.ipynb` targets the New Microsoft Foundry Agents that uses Responses
-
-3. Upload: Chosen notebook to the `ParametricInsurance` workspace
-4. Open the notebook
-5. Click **Lakehouse** in the left panel → attach to `parametric_insurance_lakehouse`
+#### You will do this with each notebook file
+4. Upload: Chosen notebook to the `ParametricInsurance` workspace
+5. Open the notebook
+6. Click **Lakehouse** in the left panel → attach to `parametric_insurance_lakehouse`
 
 ### 1.4 Run the Demo
+
+#### (Do the following steps for each notebook file, making sure to do the schema load first)
 
 Click **Run All**. The notebook creates all tables, loads policies, simulates outages, fetches weather, validates claims, and processes payouts.
 

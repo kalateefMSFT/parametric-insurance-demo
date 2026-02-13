@@ -55,16 +55,18 @@ Dashboard Summary + Event Audit Log
 2. Create a workspace named `ParametricInsurance`
 3. Inside the workspace, create a **Lakehouse** named `parametric_insurance_lakehouse`
 
-### Step 2 — Import the Notebook
+### Step 2 — Import the Notebooks
 
 1. Click **Import** → **Notebook**
-2. You have options for the notebook: 
+2. `fabric/notebooks/schema_load_with_policies.ipynb`
+   - This creates the schema and load the sample policies
+3. You have options for the demo notebook: 
     - `fabric/notebooks/parametric_insurance_unified_demo.ipynb` targets the Classic Microsoft Foundry Agents that uses Threads
     - `fabric/notebooks/parametric_insurance_unified_demo_new.ipynb` targets the New Microsoft Foundry Agents that uses Responses
-
-3. Upload: Chosen notebook to the `ParametricInsurance` workspace
-4. Open the notebook
-5. Click **Lakehouse** in the left panel → attach to `parametric_insurance_lakehouse`
+#### You will do this with each notebook file
+4. Upload: Chosen notebook to the `ParametricInsurance` workspace
+5. Open the notebook
+6. Click **Lakehouse** in the left panel → attach to `parametric_insurance_lakehouse`
 
 ### Step 3 — Configure (Optional)
 
@@ -84,6 +86,8 @@ foundry_api_key: str = "your-key"
 ```
 
 ### Step 4 — Run All Cells
+
+#### (Do the following steps for each notebook file, making sure to do the schema load first)
 
 Click **Run All**. The notebook will:
 
@@ -114,11 +118,10 @@ parametric-insurance-demo/
 │
 ├── fabric/
 │   └── notebooks/
+│       └── schema_load_with_policies.ipynb   ← Load and run this first
 │       └── parametric_insurance_unified_demo.py   ← The legacy notebook
 │       └── parametric_insurance_unified_demo.ipynb   ← The notebook targeting the Classic Foundry Agents
 │       └── parametric_insurance_unified_demo_new.ipynb   ← The notebook targeting the New Foundry Agent Experience
-│   └── sql/
-│       └── additional_sample_policies.sql   ← The notebook creates 11 policies, this is 40 more.
 │
 ├── setup/
 │   ├── azure-setup.sh          # Create Event Grid + Functions (optional)
