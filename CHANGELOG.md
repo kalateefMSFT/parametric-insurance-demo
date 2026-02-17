@@ -2,6 +2,49 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.0.0] - 2026-02-17
+
+### Changed — Multi-Notebook Pipeline Architecture
+
+The demo has been restructured from a single monolithic notebook into a **4-notebook pipeline** with clear separation of concerns. Each notebook handles a distinct stage of the parametric insurance workflow and builds on data produced by the previous one.
+
+### Added
+
+- **Schema & policy notebook** (`fabric/notebooks/schema_load_with_policies.ipynb`)
+  - Separated schema creation and policy loading from the demo pipeline
+  - Creates/resets all non-policy Delta tables while preserving existing policies
+  - Loads 250 sample policies across 40 US cities with deduplication
+  - Safe to re-run without data loss
+
+- **Weather alert monitor notebook** (`fabric/notebooks/weather_alert_policy_impact.ipynb`)
+  - Polls NOAA for active severe weather alerts in real time
+  - Geo-matches alerts to policyholder locations using Haversine formula (configurable radius, default 50 km)
+  - Computes risk scores (45% severity + 35% urgency + 20% proximity)
+  - Built-in deduplication (6-hour window) to avoid re-triggering
+  - Publishes `policy.weather.impact` events to Event Grid
+  - New `weather_impact_events` Delta table for impact persistence
+  - Designed for scheduled execution (e.g., every 15 minutes)
+
+- **Email notifier notebook** (`fabric/notebooks/weather_impact_email_notifier.ipynb`)
+  - Two-step orchestration: Spark SQL enrichment + Foundry Orchestrator Agent (LLM-only) for email composition
+  - Professional AI-generated email notifications to impacted policyholders
+  - Rule-based template fallback when Foundry is unavailable
+  - New `email_notifications` Delta table for notification tracking
+  - Optional webhook dispatch to Logic App / Power Automate
+  - Marks source impacts as notified to prevent duplicate emails
+
+- **New Event Grid event type**: `policy.weather.impact` — published when a weather alert geo-matches a policy
+
+- **New Foundry Agent experience** — the claims pipeline notebook now uses `AIProjectClient` and the Responses API instead of the legacy thread-based `AgentsClient`
+
+### Changed
+
+- **Claims pipeline notebook** renamed focus to `parametric_insurance_unified_demo_new.ipynb` targeting the New Foundry Agent experience (Responses API)
+- Documentation (README.md, DEPLOYMENT.md, EVENTGRID_GUIDE.md, CHANGELOG.md) updated to reflect the 4-notebook architecture
+- Event Grid guide updated to document all 5 event types across both publishing notebooks
+
+---
+
 ## [2.0.0] - 2026-02-10
 
 ### Changed — Unified Notebook Architecture
@@ -25,7 +68,6 @@ The entire demo has been consolidated into a **single Microsoft Fabric notebook*
   - `payout.processed` — published when payment completes
 
 - **New documentation**
-  - `QUICKSTART.md` — streamlined 10-minute guide
   - `docs/DEPLOYMENT.md` — full deployment with optional integrations
   - `docs/EVENTGRID_GUIDE.md` — Event Grid wiring, subscriptions, monitoring
 
@@ -70,5 +112,6 @@ These files remain functional and can be deployed alongside the notebook for a f
 
 ---
 
+[3.0.0]: https://github.com/yourusername/parametric-insurance-demo/releases/tag/v3.0.0
 [2.0.0]: https://github.com/yourusername/parametric-insurance-demo/releases/tag/v2.0.0
 [1.0.0]: https://github.com/yourusername/parametric-insurance-demo/releases/tag/v1.0.0

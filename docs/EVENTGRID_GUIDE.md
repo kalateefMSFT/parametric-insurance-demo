@@ -1,21 +1,22 @@
 # Event Grid Integration Guide
 
-How the unified notebook publishes events to Azure Event Grid, and how to wire subscribers.
+How the notebooks publish events to Azure Event Grid, and how to wire subscribers.
 
 ## Event Types
 
-The notebook publishes 4 event types at different stages of the pipeline:
+The notebooks publish 5 event types at different stages of the pipeline:
 
-| Event Type | Published When | Payload Includes |
-|-----------|---------------|-----------------|
-| `outage.detected` | An outage matches one or more policies (Step 5) | event_id, utility, city, affected_customers, affected_policies[] |
-| `claim.approved` | AI validates and approves a claim (Step 6) | claim_id, policy_id, payout_amount, ai_confidence_score |
-| `claim.denied` | AI denies a claim (Step 6) | claim_id, policy_id, denial reasoning |
-| `payout.processed` | Payment record created (Step 7) | payout_id, claim_id, amount, transaction_id |
+| Event Type | Published By | Published When | Payload Includes |
+|-----------|-------------|---------------|-----------------|
+| `outage.detected` | Claims pipeline notebook | An outage matches one or more policies | event_id, utility, city, affected_customers, affected_policies[] |
+| `claim.approved` | Claims pipeline notebook | AI validates and approves a claim | claim_id, policy_id, payout_amount, ai_confidence_score |
+| `claim.denied` | Claims pipeline notebook | AI denies a claim | claim_id, policy_id, denial reasoning |
+| `payout.processed` | Claims pipeline notebook | Payment record created | payout_id, claim_id, amount, transaction_id |
+| `policy.weather.impact` | Weather alert monitor notebook | A weather alert geo-matches a policy | alert_id, policy_id, alert_headline, severity, urgency, distance_km, risk_score |
 
 ## How Events Are Published
 
-The notebook includes an embedded `NotebookEventGridClient` that posts directly to the Event Grid REST API. No SDK installation required.
+Each notebook includes an embedded `NotebookEventGridClient` that posts directly to the Event Grid REST API. No SDK installation required.
 
 ```python
 # Simplified view of what happens inside the notebook:
@@ -59,9 +60,9 @@ az eventgrid topic show --name parametric-insurance-events -g parametric-insuran
 az eventgrid topic key list --name parametric-insurance-events -g parametric-insurance-rg --query key1 -o tsv
 ```
 
-### 2. Configure the Notebook
+### 2. Configure the Notebooks
 
-Set in `DemoConfig` (Step 0):
+Set in the config class (Step 0) of each notebook that publishes events (`parametric_insurance_unified_demo_new.ipynb` and `weather_alert_policy_impact.ipynb`):
 
 ```python
 eventgrid_topic_endpoint = "https://parametric-insurance-events.eastus-1.eventgrid.azure.net/api/events"
